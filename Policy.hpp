@@ -1,31 +1,32 @@
 //
-//  City.hpp
+//  Policy.hpp
 //  ME-791_SF_Project_Gamma_project
 //
-//  Created by Scott S Forer on 3/14/17.
+//  Created by Scott S Forer on 3/16/17.
 //  Copyright © 2017 Scott S Forer. All rights reserved.
 //
 
-#ifndef City_hpp
-#define City_hpp
+#ifndef Policy_hpp
+#define Policy_hpp
 
 #include <stdio.h>
 
 using namespace std;
 
-class City
+class Policy
 {
     friend class Parameters;
     friend class Agent;
-    friend class Policy;
     friend class EA;
+    friend class City;
+    
 protected:
     
 public:
-    int location;
-    double x_location;
-    double y_location;
-    vector<double> distance_to_cities;
+    vector<City> town;
+    double total_dist_traveled;
+    double fitness;
 };
 
-#endif /* City_hpp */
+
+#endif /* Policy_hpp */

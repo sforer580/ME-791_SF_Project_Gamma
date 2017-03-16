@@ -21,7 +21,8 @@
 
 #include "Parameters.hpp"
 #include "City.hpp"
-#include "Path.hpp"
+#include "Policy.hpp"
+#include "Agent.hpp"
 #include "EA.hpp"
 
 

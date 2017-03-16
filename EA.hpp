@@ -16,14 +16,15 @@ using namespace std;
 class EA
 {
     friend class Parameters;
-    friend class Path;
+    friend class Agent;
+    friend class Policy;
     friend class City;
     
 protected:
     
 public:
     Parameters* pP;
-    vector<Path> tour;
+    vector<Agent> individual;
     
     void Build_Population();
     void Create_City_Locations();
@@ -32,7 +33,7 @@ public:
     void Get_Total_Dist_Traveled();
     void Get_Fitness();
     int Binary_Select();
-    void Mutation(Path &M);
+    void Mutation(Policy &M);
     void Down_Select();
     void Re_Initialize_Population();
     struct Less_Than_Path_Fitness;
@@ -54,14 +55,16 @@ public:
 //Builds population
 void EA::Build_Population()
 {
-    for (int pop=0; pop<pP->pop_size; pop++)
+    Agent A;
+    individual.push_back(A);
+    for (int p=0; p<pP->pop_size; p++)
     {
-        Path T;
-        tour.push_back(T);
+        Policy PO;
+        individual.at(0).path.push_back(PO);
         for (int c=0; c<pP->num_cities; c++)
         {
             City C;
-            tour.at(pop).town.push_back(C);
+            individual.at(0).path.at(p).town.push_back(C);
         }
     }
     
@@ -70,15 +73,15 @@ void EA::Build_Population()
     //Display_Path_Info();
     
     //randomly shuffles the order in the path for each path in the population
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        random_shuffle(tour.at(pop).town.begin() + 1, tour.at(pop).town.end());
+        random_shuffle(individual.at(0).path.at(p).town.begin() + 1, individual.at(0).path.at(p).town.end());
     }
     
     //inserts an instance for the starting and ending city
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        assert(tour.at(pop).town.size() == pP->num_cities);
+        assert(individual.at(0).path.at(p).town.size() == pP->num_cities);
     }
     
     //Display_Path_Info();
@@ -92,19 +95,19 @@ void EA::Create_City_Locations()
     //creates a random city location for pP->num_cities starting at city 1
     for (int c=0; c<pP->num_cities; c++)
     {
-        tour.at(0).town.at(c).location = c;
-        tour.at(0).town.at(c).x_location = abs(((double)rand()/RAND_MAX)*pP->x_dim_max);
-        tour.at(0).town.at(c).y_location = abs(((double)rand()/RAND_MAX)*pP->y_dim_max);
+        individual.at(0).path.at(0).town.at(c).location = c;
+        individual.at(0).path.at(0).town.at(c).x_location = abs(((double)rand()/RAND_MAX)*pP->x_dim_max);
+        individual.at(0).path.at(0).town.at(c).y_location = abs(((double)rand()/RAND_MAX)*pP->y_dim_max);
     }
     
     //copies the cities locations for each tour
-    for (int pop=1; pop<pP->pop_size; pop++)
+    for (int p=1; p<pP->pop_size; p++)
     {
         for (int c=0; c<pP->num_cities; c++)
         {
-            tour.at(pop).town.at(c).location = tour.at(0).town.at(c).location;
-            tour.at(pop).town.at(c).x_location = tour.at(0).town.at(c).x_location;
-            tour.at(pop).town.at(c).y_location = tour.at(0).town.at(c).y_location;
+            individual.at(0).path.at(p).town.at(c).location = individual.at(0).path.at(0).town.at(c).location;
+            individual.at(0).path.at(p).town.at(c).x_location = individual.at(0).path.at(0).town.at(c).x_location;
+            individual.at(0).path.at(p).town.at(c).y_location = individual.at(0).path.at(0).town.at(c).y_location;
         }
     }
 }
@@ -121,20 +124,20 @@ void EA::Get_Distances_To_Cities()
             double dist = 0;
             double x = 0;
             double y = 0;
-            x = tour.at(0).town.at(c).x_location - tour.at(0).town.at(cc).x_location;
-            y = tour.at(0).town.at(c).y_location - tour.at(0).town.at(cc).y_location;
+            x = individual.at(0).path.at(0).town.at(c).x_location - individual.at(0).path.at(0).town.at(cc).x_location;
+            y = individual.at(0).path.at(0).town.at(c).y_location - individual.at(0).path.at(0).town.at(cc).y_location;
             dist = sqrt((x*x)+(y*y));
-            tour.at(0).town.at(c).distance_to_cities.push_back(dist);
+            individual.at(0).path.at(0).town.at(c).distance_to_cities.push_back(dist);
         }
     }
     
-    for (int pop=1; pop<pP->pop_size; pop++)
+    for (int p=1; p<pP->pop_size; p++)
     {
         for (int c=0; c<pP->num_cities; c++)
         {
             for (int cc=0; cc<pP->num_cities; cc++)
             {
-                tour.at(pop).town.at(c).distance_to_cities.push_back(tour.at(0).town.at(c).distance_to_cities.at(cc));
+                individual.at(0).path.at(p).town.at(c).distance_to_cities.push_back(individual.at(0).path.at(0).town.at(c).distance_to_cities.at(cc));
             }
         }
     }
@@ -145,39 +148,39 @@ void EA::Get_Distances_To_Cities()
 //Displays the information for each path
 void EA::Display_Path_Info()
 {
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        cout << "PATH" << "\t" << pop << endl;
+        cout << "PATH" << "\t" << p << endl;
         for (int c=0; c<pP->num_cities; c++)
         {
-            cout << tour.at(pop).town.at(c).location << "\t";
+            cout << individual.at(0).path.at(p).town.at(c).location << "\t";
         }
         cout << endl;
     }
     cout << endl;
     
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        cout << "PATH" << "\t" << pop << endl;
+        cout << "PATH" << "\t" << p << endl;
         for (int c=0; c<pP->num_cities; c++)
         {
-            cout << "CITY" << "\t" << tour.at(pop).town.at(c).location << endl;
-            cout << "X LOCATION" << "\t" << tour.at(pop).town.at(c).x_location << endl;
-            cout << "Y LOCATION" << "\t" << tour.at(pop).town.at(c).y_location << endl;
+            cout << "CITY" << "\t" << individual.at(0).path.at(p).town.at(c).location << endl;
+            cout << "X LOCATION" << "\t" << individual.at(0).path.at(p).town.at(c).x_location << endl;
+            cout << "Y LOCATION" << "\t" << individual.at(0).path.at(p).town.at(c).y_location << endl;
         }
         cout << endl;
     }
     cout << endl;
     
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        cout << "PATH" << "\t" << pop << endl;
+        cout << "PATH" << "\t" << p << endl;
         for (int c=0; c<pP->num_cities; c++)
         {
-            cout << "STOP" << "\t" << c << "\t" << "CITY" << "\t" << tour.at(pop).town.at(c).location <<  endl;
+            cout << "STOP" << "\t" << c << "\t" << "CITY" << "\t" << individual.at(0).path.at(p).town.at(c).location <<  endl;
             for (int cc=0; cc<pP->num_cities; cc++)
             {
-                cout << "DISTANCE TO CITY" << "\t" << cc << "\t" << tour.at(pop).town.at(c).distance_to_cities.at(cc) << endl;
+                cout << "DISTANCE TO CITY" << "\t" << cc << "\t" << individual.at(0).path.at(p).town.at(c).distance_to_cities.at(cc) << endl;
             }
             cout << endl;
         }
@@ -190,18 +193,18 @@ void EA::Display_Path_Info()
 //Calculates the total distance traveld given a path
 void EA::Get_Total_Dist_Traveled()
 {
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
         double sum = 0;
         for (int c=0; c<pP->num_cities-1; c++)
         {
             //cout << "in " << endl;
-            sum += tour.at(pop).town.at(c).distance_to_cities.at(tour.at(pop).town.at(c+1).location);
+            sum += individual.at(0).path.at(p).town.at(c).distance_to_cities.at(individual.at(0).path.at(p).town.at(c+1).location);
             //cout << "out " << endl;
             //cout << sum << endl;
         }
         //cout << endl;
-        tour.at(pop).total_dist_traveled = sum;
+        individual.at(0).path.at(p).total_dist_traveled = sum;
         //cout << "PATH" << "\t" << pop << endl;
         //cout << "TOTAL DISTACNE TRAVELED" << "\t" << tour.at(pop).total_dist_traveled << endl;
         //cout << endl;
@@ -214,10 +217,10 @@ void EA::Get_Total_Dist_Traveled()
 //Calculates the fitness for each path
 void EA::Get_Fitness()
 {
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        tour.at(pop).fitness = 0;
-        tour.at(pop).fitness = tour.at(pop).total_dist_traveled;
+        individual.at(0).path.at(p).fitness = 0;
+        individual.at(0).path.at(p).fitness = individual.at(0).path.at(p).total_dist_traveled;
         //cout << "path" << "\t" << pop << "\t" << "fitness" << "\t" << tour.at(pop).fitness << endl;
     }
     //cout << endl;
@@ -229,13 +232,13 @@ void EA::Get_Fitness()
 int EA::Binary_Select()
 {
     int loser;
-    int index_1 = rand() % tour.size();
-    int index_2 = rand() % tour.size();
+    int index_1 = rand() % individual.at(0).path.size();
+    int index_2 = rand() % individual.at(0).path.size();
     while (index_1 == index_2)
     {
-        index_2 = rand() % tour.size();
+        index_2 = rand() % individual.at(0).path.size();
     }
-    if(tour.at(index_1).fitness < tour.at(index_2).fitness)
+    if(individual.at(0).path.at(index_1).fitness < individual.at(0).path.at(index_2).fitness)
     {
         loser = index_2;
     }
@@ -249,7 +252,7 @@ int EA::Binary_Select()
 
 //-----------------------------------------------------------
 //Mutates the copies of the winning individuals
-void EA::Mutation(Path &M)
+void EA::Mutation(Policy &M)
 {
     //add for loop here for nmber of times cities are swapped
     //randomly selects two cities that are not the first of last city
@@ -278,18 +281,18 @@ void EA::Down_Select()
     {
         int kill = 0;
         kill = Binary_Select();
-        tour.erase(tour.begin() + kill);
+        individual.at(0).path.erase(individual.at(0).path.begin() + kill);
     }
     
     int to_replicate = pP->to_kill;
     for (int r=0; r<to_replicate; r++)
     {
         //cout << r << endl;
-        Path M;
-        int spot = rand() % tour.size();
-        M = tour.at(spot);
+        Policy M;
+        int spot = rand() % individual.at(0).path.size();
+        M = individual.at(0).path.at(spot);
         Mutation(M);
-        tour.push_back(M);
+        individual.at(0).path.push_back(M);
     }
 }
 
@@ -301,9 +304,9 @@ void EA::Re_Initialize_Population()
     ave_fitness.clear();
     max_fitness.clear();
     //randomly shuffles the order in the path for each path in the population
-    for (int pop=0; pop<pP->pop_size; pop++)
+    for (int p=0; p<pP->pop_size; p++)
     {
-        random_shuffle(tour.at(pop).town.begin()+1, tour.at(pop).town.end());
+        random_shuffle(individual.at(0).path.at(p).town.begin()+1, individual.at(0).path.at(p).town.end());
     }
     //Display_Path_Info();
 }
@@ -313,7 +316,7 @@ void EA::Re_Initialize_Population()
 //sorts the population based on their fitness from highest to lowest
 struct EA::Less_Than_Path_Fitness
 {
-    inline bool operator() (const Path& struct1, const Path& struct2)
+    inline bool operator() (const Policy& struct1, const Policy& struct2)
     {
         return (struct1.fitness < struct2.fitness);
     }
@@ -324,14 +327,14 @@ struct EA::Less_Than_Path_Fitness
 //copies the max, ave, and min fitness
 void EA::Run_Scoreboard()
 {
-    min_fitness.push_back(tour.at(0).fitness);
+    min_fitness.push_back(individual.at(0).path.at(0).fitness);
     double sum = 0;
     for (int p=0; p<pP->pop_size; p++)
     {
-        sum += tour.at(p).fitness;
+        sum += individual.at(0).path.at(p).fitness;
     }
     ave_fitness.push_back(sum/pP->pop_size);
-    max_fitness.push_back(tour.at(pP->pop_size-1).fitness);
+    max_fitness.push_back(individual.at(0).path.at(pP->pop_size-1).fitness);
     
 }
 
@@ -422,7 +425,7 @@ void EA::Run_TSP()
             
             Get_Total_Dist_Traveled();
             Get_Fitness();
-            sort(tour.begin(), tour.end(), Less_Than_Path_Fitness());
+            sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
             Run_Scoreboard();
             Down_Select();
         }
