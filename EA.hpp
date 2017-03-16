@@ -26,15 +26,17 @@ public:
     Parameters* pP;
     vector<Agent> individual;
     
-    void Build_Population();
+    void Initialize_Population();
     void Create_City_Locations();
     void Get_Distances_To_Cities();
     void Display_Path_Info();
     void Get_Total_Dist_Traveled();
     void Get_Fitness();
+    void Evaluate();
     int Binary_Select();
-    void Mutation(Policy &M);
     void Down_Select();
+    void Mutation(Policy &M);
+    void Replicate();
     void Re_Initialize_Population();
     struct Less_Than_Path_Fitness;
     void Run_TSP();
@@ -46,14 +48,14 @@ public:
     vector<double> min_fitness;
     void Run_Scoreboard();
     void Run_Text_File_Functions();
-    void Delete_text_Files();
+    void Delete_Text_Files();
 };
 
 
 
 //-----------------------------------------------------------
-//Builds population
-void EA::Build_Population()
+//Initializes the population
+void EA::Initialize_Population()
 {
     Agent A;
     individual.push_back(A);
@@ -228,6 +230,15 @@ void EA::Get_Fitness()
 
 
 //-----------------------------------------------------------
+//Runs the evaluation process
+void EA::Evaluate()
+{
+    Get_Total_Dist_Traveled();
+    Get_Fitness();
+}
+
+
+//-----------------------------------------------------------
 //Randomly selects two individuals and decides which one will die based on their fitness
 int EA::Binary_Select()
 {
@@ -247,6 +258,19 @@ int EA::Binary_Select()
         loser = index_1;
     }
     return loser;
+}
+
+
+//-----------------------------------------------------------
+//Runs the down select process
+void EA::Down_Select()
+{
+    for(int k=0; k<pP->to_kill; k++)
+    {
+        int kill = 0;
+        kill = Binary_Select();
+        individual.at(0).path.erase(individual.at(0).path.begin() + kill);
+    }
 }
 
 
@@ -272,18 +296,10 @@ void EA::Mutation(Policy &M)
 }
 
 
-
 //-----------------------------------------------------------
 //Runs the down select process
-void EA::Down_Select()
+void EA::Replicate()
 {
-    for(int k=0; k<pP->to_kill; k++)
-    {
-        int kill = 0;
-        kill = Binary_Select();
-        individual.at(0).path.erase(individual.at(0).path.begin() + kill);
-    }
-    
     int to_replicate = pP->to_kill;
     for (int r=0; r<to_replicate; r++)
     {
@@ -295,6 +311,7 @@ void EA::Down_Select()
         individual.at(0).path.push_back(M);
     }
 }
+
 
 //-----------------------------------------------------------
 //Re-initilaizes the paths
@@ -341,7 +358,7 @@ void EA::Run_Scoreboard()
 
 //-------------------------------------------------------------------------
 //Deletes text files
-void EA::Delete_text_Files()
+void EA::Delete_Text_Files()
 {
     
     if( remove( "Min_Fitness.txt" ) != 0 )
@@ -404,8 +421,8 @@ void EA::Run_Text_File_Functions()
 //Runs the entire TSP program
 void EA::Run_TSP()
 {
-    Delete_text_Files();
-    Build_Population();
+    Delete_Text_Files();
+    Initialize_Population();
     for (int sr=0; sr<pP->num_sr; sr++)
     {
         cout << "------------------------------------" << endl;
@@ -422,12 +439,11 @@ void EA::Run_TSP()
                 cout << "SR" << "\t" << sr << "::" << gen << endl;
                 cout << endl;
             }
-            
-            Get_Total_Dist_Traveled();
-            Get_Fitness();
+            Evaluate();
             sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
             Run_Scoreboard();
             Down_Select();
+            Replicate();
         }
         Run_Text_File_Functions();
     }
