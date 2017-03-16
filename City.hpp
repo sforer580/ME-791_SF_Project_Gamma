@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+using namespace std;
+
 class City
 {
     friend class Parameters;
@@ -24,7 +26,6 @@ public:
     double x_location;
     double y_location;
     vector<double> distance_to_cities;
-    int selected;
 };
 
 #endif /* City_hpp */

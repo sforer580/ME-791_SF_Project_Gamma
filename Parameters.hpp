@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+using namespace std;
+
 class Parameters
 {
     friend class EA;
@@ -24,10 +26,10 @@ public:
     int x_dim_max = 50;
     int y_dim_max = 50;
     int pop_size = 50;
-    int num_cities = 100;
+    int num_cities = 50;
     int to_kill = pop_size/2;
-    int max_gen = 5000;
-    int num_sr = 30;
+    int max_gen = 1000;
+    int num_sr = 2;
 };
 
 #endif /* Parameters_hpp */

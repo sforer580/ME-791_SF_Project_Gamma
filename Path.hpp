@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+using namespace std;
+
 class Path
 {
     friend class Parameters;
