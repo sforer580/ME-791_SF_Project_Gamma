@@ -278,21 +278,23 @@ void EA::Down_Select()
 //Mutates the copies of the winning individuals
 void EA::Mutation(Policy &M)
 {
-    //add for loop here for nmber of times cities are swapped
-    //randomly selects two cities that are not the first of last city
-    int index_c1 = (int)rand() % pP->num_cities;
-    while (index_c1 == 0)
+    for (int s=0; s<pP->num_swaps; s++)
     {
-        index_c1 = (int)rand() % pP->num_cities;
+        //randomly selects two cities that are not the first of last city
+        int index_c1 = (int)rand() % pP->num_cities;
+        while (index_c1 == 0)
+        {
+            index_c1 = (int)rand() % pP->num_cities;
+        }
+        int index_c2 = (int)rand() % pP->num_cities;
+        while (index_c1 == index_c2 || index_c2 == 0)
+        {
+            index_c2 = (int)rand() % pP->num_cities;
+        }
+        
+        //swaps the info for the two randomly selected cities
+        swap(M.town.at(index_c1), M.town.at(index_c2));
     }
-    int index_c2 = (int)rand() % pP->num_cities;
-    while (index_c1 == index_c2 || index_c2 == 0)
-    {
-        index_c2 = (int)rand() % pP->num_cities;
-    }
-    
-    //swaps the info for the two randomly selected cities
-    swap(M.town.at(index_c1), M.town.at(index_c2));
 }
 
 

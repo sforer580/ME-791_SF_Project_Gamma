@@ -28,6 +28,7 @@ public:
     int pop_size = 50;
     int num_cities = 50;
     int to_kill = pop_size/2;
+    int num_swaps = 1;
     int max_gen = 1000;
     int num_sr = 2;
 };
