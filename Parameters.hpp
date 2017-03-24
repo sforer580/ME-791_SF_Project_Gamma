@@ -25,12 +25,12 @@ public:
     //Parameters
     int x_dim_max = 50;
     int y_dim_max = 50;
-    int pop_size = 50;
-    int num_cities = 50;
+    int pop_size = 200;
+    int num_cities = 25;
     int to_kill = pop_size/2;
     int num_swaps = 1;
-    int max_gen = 1000;
-    int num_sr = 2;
+    int max_gen = 4000;
+    int num_sr = 1;
 };
 
 #endif /* Parameters_hpp */

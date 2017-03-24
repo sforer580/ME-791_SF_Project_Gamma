@@ -35,6 +35,7 @@ int main()
     Parameters P;
     EA E;
     E.pP = &P;
+    E.Run_HR_2();
     E.Run_TSP();
     return 0;
 }

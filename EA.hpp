@@ -40,6 +40,9 @@ public:
     void Re_Initialize_Population();
     struct Less_Than_Path_Fitness;
     void Run_TSP();
+    void Create_Set_City_Locations();
+    void Initialize_Set_Population();
+    void Run_HR_2();
     
     
     //Statistics
@@ -86,7 +89,7 @@ void EA::Initialize_Population()
         assert(individual.at(0).path.at(p).town.size() == pP->num_cities);
     }
     
-    //Display_Path_Info();
+    Display_Path_Info();
 }
 
 
@@ -95,7 +98,7 @@ void EA::Initialize_Population()
 void EA::Create_City_Locations()
 {
     //creates a random city location for pP->num_cities starting at city 1
-    for (int c=0; c<pP->num_cities; c++)
+    for (int c=0; c<individual.at(0).path.at(0).town.size(); c++)
     {
         individual.at(0).path.at(0).town.at(c).location = c;
         individual.at(0).path.at(0).town.at(c).x_location = abs(((double)rand()/RAND_MAX)*pP->x_dim_max);
@@ -105,7 +108,7 @@ void EA::Create_City_Locations()
     //copies the cities locations for each tour
     for (int p=1; p<pP->pop_size; p++)
     {
-        for (int c=0; c<pP->num_cities; c++)
+        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
         {
             individual.at(0).path.at(p).town.at(c).location = individual.at(0).path.at(0).town.at(c).location;
             individual.at(0).path.at(p).town.at(c).x_location = individual.at(0).path.at(0).town.at(c).x_location;
@@ -119,9 +122,9 @@ void EA::Create_City_Locations()
 //Calculates the distance to each city form each cities perspective
 void EA::Get_Distances_To_Cities()
 {
-    for (int c=0; c<pP->num_cities; c++)
+    for (int c=0; c<individual.at(0).path.at(0).town.size(); c++)
     {
-        for (int cc=0; cc<pP->num_cities; cc++)
+        for (int cc=0; cc<individual.at(0).path.at(0).town.size(); cc++)
         {
             double dist = 0;
             double x = 0;
@@ -135,9 +138,9 @@ void EA::Get_Distances_To_Cities()
     
     for (int p=1; p<pP->pop_size; p++)
     {
-        for (int c=0; c<pP->num_cities; c++)
+        for (int c=0; c<individual.at(0).path.at(0).town.size(); c++)
         {
-            for (int cc=0; cc<pP->num_cities; cc++)
+            for (int cc=0; cc<individual.at(0).path.at(0).town.size(); cc++)
             {
                 individual.at(0).path.at(p).town.at(c).distance_to_cities.push_back(individual.at(0).path.at(0).town.at(c).distance_to_cities.at(cc));
             }
@@ -153,7 +156,7 @@ void EA::Display_Path_Info()
     for (int p=0; p<pP->pop_size; p++)
     {
         cout << "PATH" << "\t" << p << endl;
-        for (int c=0; c<pP->num_cities; c++)
+        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
         {
             cout << individual.at(0).path.at(p).town.at(c).location << "\t";
         }
@@ -164,7 +167,7 @@ void EA::Display_Path_Info()
     for (int p=0; p<pP->pop_size; p++)
     {
         cout << "PATH" << "\t" << p << endl;
-        for (int c=0; c<pP->num_cities; c++)
+        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
         {
             cout << "CITY" << "\t" << individual.at(0).path.at(p).town.at(c).location << endl;
             cout << "X LOCATION" << "\t" << individual.at(0).path.at(p).town.at(c).x_location << endl;
@@ -177,10 +180,10 @@ void EA::Display_Path_Info()
     for (int p=0; p<pP->pop_size; p++)
     {
         cout << "PATH" << "\t" << p << endl;
-        for (int c=0; c<pP->num_cities; c++)
+        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
         {
             cout << "STOP" << "\t" << c << "\t" << "CITY" << "\t" << individual.at(0).path.at(p).town.at(c).location <<  endl;
-            for (int cc=0; cc<pP->num_cities; cc++)
+            for (int cc=0; cc<individual.at(0).path.at(p).town.size(); cc++)
             {
                 cout << "DISTANCE TO CITY" << "\t" << cc << "\t" << individual.at(0).path.at(p).town.at(c).distance_to_cities.at(cc) << endl;
             }
@@ -198,7 +201,7 @@ void EA::Get_Total_Dist_Traveled()
     for (int p=0; p<pP->pop_size; p++)
     {
         double sum = 0;
-        for (int c=0; c<pP->num_cities-1; c++)
+        for (int c=0; c<individual.at(0).path.at(p).town.size()-1; c++)
         {
             //cout << "in " << endl;
             sum += individual.at(0).path.at(p).town.at(c).distance_to_cities.at(individual.at(0).path.at(p).town.at(c+1).location);
@@ -281,15 +284,15 @@ void EA::Mutation(Policy &M)
     for (int s=0; s<pP->num_swaps; s++)
     {
         //randomly selects two cities that are not the first of last city
-        int index_c1 = (int)rand() % pP->num_cities;
+        int index_c1 = (int)rand() % individual.at(0).path.at(0).town.size();
         while (index_c1 == 0)
         {
-            index_c1 = (int)rand() % pP->num_cities;
+            index_c1 = (int)rand() % individual.at(0).path.at(0).town.size();
         }
-        int index_c2 = (int)rand() % pP->num_cities;
+        int index_c2 = (int)rand() % individual.at(0).path.at(0).town.size();
         while (index_c1 == index_c2 || index_c2 == 0)
         {
-            index_c2 = (int)rand() % pP->num_cities;
+            index_c2 = (int)rand() % individual.at(0).path.at(0).town.size();
         }
         
         //swaps the info for the two randomly selected cities
@@ -449,6 +452,109 @@ void EA::Run_TSP()
         }
         Run_Text_File_Functions();
     }
+}
+
+//-----------------------------------------------------------
+//Creates the preset city locations for from city 0 to 9
+void EA::Create_Set_City_Locations()
+{
+    //creates a random city location for pP->num_cities starting at city 1
+    for (int c=0; c<individual.at(0).path.at(0).town.size(); c++)
+    {
+        individual.at(0).path.at(0).town.at(c).location = c;
+        individual.at(0).path.at(0).town.at(c).x_location = c;
+        individual.at(0).path.at(0).town.at(c).y_location = c;
+    }
+    
+    //copies the cities locations for each tour
+    for (int p=1; p<pP->pop_size; p++)
+    {
+        for (int c=0; c< individual.at(0).path.at(p).town.size(); c++)
+        {
+            individual.at(0).path.at(p).town.at(c).location = individual.at(0).path.at(0).town.at(c).location;
+            individual.at(0).path.at(p).town.at(c).x_location = individual.at(0).path.at(0).town.at(c).x_location;
+            individual.at(0).path.at(p).town.at(c).y_location = individual.at(0).path.at(0).town.at(c).y_location;
+        }
+    }
+}
+
+
+//-----------------------------------------------------------
+//Initializes the Preset Population population
+void EA::Initialize_Set_Population()
+{
+    Agent A;
+    individual.push_back(A);
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        Policy PO;
+        individual.at(0).path.push_back(PO);
+        for (int c=0; c<10; c++)
+        {
+            City C;
+            individual.at(0).path.at(p).town.push_back(C);
+        }
+    }
+    
+    Create_Set_City_Locations();
+    Get_Distances_To_Cities();
+    //Display_Path_Info();
+    
+    //randomly shuffles the order in the path for each path in the population
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        random_shuffle(individual.at(0).path.at(p).town.begin() + 1, individual.at(0).path.at(p).town.end());
+    }
+    
+    //inserts an instance for the starting and ending city
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        assert(individual.at(0).path.at(p).town.size() == 10);
+    }
+    
+    Display_Path_Info();
+}
+
+
+//-----------------------------------------------------------
+//Runs the entire HR_2 test
+void EA::Run_HR_2()
+{
+    Initialize_Set_Population();
+    for (int gen=0; gen<pP->max_gen; gen++)
+    {
+        if (gen % 100 == 0)
+        {
+            //cout < "Generation << "\t" << gen << endl;
+            //cout << endl;
+        }
+        if (gen<pP->max_gen-1)
+        {
+            Evaluate();
+            sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
+            Run_Scoreboard();
+            Down_Select();
+            Replicate();
+        }
+        if(gen==pP->max_gen-1)
+        {
+            Evaluate();
+            sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
+        }
+    }
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        cout << "PATH" << "\t" << p << endl;
+        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
+        {
+            cout << individual.at(0).path.at(p).town.at(c).location << "\t";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    assert(individual.at(0).path.at(0).fitness >= 9*sqrt(2)-0.1 || individual.at(0).path.at(0).fitness <= 9*sqrt(2)+0.1);
+    Re_Initialize_Population();
+    individual.clear();
 }
 
 #endif /* EA_hpp */
