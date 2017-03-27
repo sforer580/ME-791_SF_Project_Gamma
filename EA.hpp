@@ -42,6 +42,8 @@ public:
     void Run_TSP();
     void Create_Set_City_Locations();
     void Initialize_Set_Population();
+    void Run_LR_5();
+    void Run_LR_6();
     void Run_HR_2();
     
     
@@ -58,6 +60,7 @@ public:
 
 //-----------------------------------------------------------
 //Initializes the population
+//satisfies MR_1
 void EA::Initialize_Population()
 {
     Agent A;
@@ -78,6 +81,7 @@ void EA::Initialize_Population()
     //Display_Path_Info();
     
     //randomly shuffles the order in the path for each path in the population
+    //satisfies LR_4
     for (int p=0; p<pP->pop_size; p++)
     {
         random_shuffle(individual.at(0).path.at(p).town.begin() + 1, individual.at(0).path.at(p).town.end());
@@ -89,7 +93,7 @@ void EA::Initialize_Population()
         assert(individual.at(0).path.at(p).town.size() == pP->num_cities);
     }
     
-    Display_Path_Info();
+    //Display_Path_Info();
 }
 
 
@@ -120,6 +124,7 @@ void EA::Create_City_Locations()
 
 //-----------------------------------------------------------
 //Calculates the distance to each city form each cities perspective
+//satisfies LR_7
 void EA::Get_Distances_To_Cities()
 {
     for (int c=0; c<individual.at(0).path.at(0).town.size(); c++)
@@ -196,6 +201,7 @@ void EA::Display_Path_Info()
 
 //-----------------------------------------------------------
 //Calculates the total distance traveld given a path
+//satisfies LR_8
 void EA::Get_Total_Dist_Traveled()
 {
     for (int p=0; p<pP->pop_size; p++)
@@ -220,12 +226,15 @@ void EA::Get_Total_Dist_Traveled()
 
 //-----------------------------------------------------------
 //Calculates the fitness for each path
+//satisfies MR_2
+//satisfies MR_3
 void EA::Get_Fitness()
 {
     for (int p=0; p<pP->pop_size; p++)
     {
         individual.at(0).path.at(p).fitness = 0;
         individual.at(0).path.at(p).fitness = individual.at(0).path.at(p).total_dist_traveled;
+        assert(individual.at(0).path.at(p).fitness == individual.at(0).path.at(p).total_dist_traveled);
         //cout << "path" << "\t" << pop << "\t" << "fitness" << "\t" << tour.at(pop).fitness << endl;
     }
     //cout << endl;
@@ -233,9 +242,42 @@ void EA::Get_Fitness()
 
 
 //-----------------------------------------------------------
+//Checks that the agent begins at the same city
+void EA::Run_LR_5()
+{
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        assert(individual.at(0).path.at(p).town.at(0).location == 0);
+    }
+}
+
+
+//-----------------------------------------------------------
+//Checks that the agent never visits the same city twice
+void EA::Run_LR_6()
+{
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
+        {
+            for (int cc=0; cc<individual.at(0).path.at(p).town.size(); cc++)
+            {
+                if (c != cc)
+                {
+                    assert(individual.at(0).path.at(p).town.at(c).location != individual.at(0).path.at(p).town.at(cc).location);
+                }
+            }
+        }
+    }
+}
+
+
+//-----------------------------------------------------------
 //Runs the evaluation process
 void EA::Evaluate()
 {
+    Run_LR_5();
+    Run_LR_6();
     Get_Total_Dist_Traveled();
     Get_Fitness();
 }
@@ -243,6 +285,7 @@ void EA::Evaluate()
 
 //-----------------------------------------------------------
 //Randomly selects two individuals and decides which one will die based on their fitness
+//satisfies MR_4
 int EA::Binary_Select()
 {
     int loser;
@@ -279,6 +322,7 @@ void EA::Down_Select()
 
 //-----------------------------------------------------------
 //Mutates the copies of the winning individuals
+//satisfies LR_4
 void EA::Mutation(Policy &M)
 {
     for (int s=0; s<pP->num_swaps; s++)
@@ -303,6 +347,7 @@ void EA::Mutation(Policy &M)
 
 //-----------------------------------------------------------
 //Runs the down select process
+//satisfies MR_5
 void EA::Replicate()
 {
     int to_replicate = pP->to_kill;
@@ -512,7 +557,7 @@ void EA::Initialize_Set_Population()
         assert(individual.at(0).path.at(p).town.size() == 10);
     }
     
-    Display_Path_Info();
+    //Display_Path_Info();
 }
 
 
@@ -542,6 +587,7 @@ void EA::Run_HR_2()
             sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
         }
     }
+    /*
     for (int p=0; p<pP->pop_size; p++)
     {
         cout << "PATH" << "\t" << p << endl;
@@ -552,7 +598,10 @@ void EA::Run_HR_2()
         cout << endl;
     }
     cout << endl;
+    */
     assert(individual.at(0).path.at(0).fitness >= 9*sqrt(2)-0.1 || individual.at(0).path.at(0).fitness <= 9*sqrt(2)+0.1);
+    cout << "PASSED HR_2" << endl;
+    cout << endl;
     Re_Initialize_Population();
     individual.clear();
 }
