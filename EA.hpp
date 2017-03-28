@@ -42,12 +42,26 @@ public:
     void Run_TSP();
     void Create_Set_City_Locations();
     void Initialize_Set_Population();
+    void Run_LR_1();
+    void Run_LR_2();
+    void Run_LR_3();
+    void Run_LR_4(Policy &M, Policy &MM);
     void Run_LR_5();
     void Run_LR_6();
+    void Run_LR_7();
+    void Run_LR_8();
+    void Run_MR_1();
+    void Run_MR_2();
     void Run_HR_2();
+    void Run_MR_3(int p);
+    void Run_MR_4(int index_1, int index_2, int loser);
+    void Run_MR_5();
+    void Run_HR_1();
     
     
     //Statistics
+    double first_fitness;
+    double last_fitness;
     vector<double> max_fitness;
     vector<double> ave_fitness;
     vector<double> min_fitness;
@@ -76,24 +90,57 @@ void EA::Initialize_Population()
         }
     }
     
+    Run_LR_1();
+    Run_LR_2();
+    Run_LR_3();
+    Run_MR_1();
+    
     Create_City_Locations();
     Get_Distances_To_Cities();
     //Display_Path_Info();
     
     //randomly shuffles the order in the path for each path in the population
-    //satisfies LR_4
     for (int p=0; p<pP->pop_size; p++)
     {
         random_shuffle(individual.at(0).path.at(p).town.begin() + 1, individual.at(0).path.at(p).town.end());
     }
     
-    //inserts an instance for the starting and ending city
+    
+    //Display_Path_Info();
+}
+
+//-----------------------------------------------------------
+//Checks if the cities have been created
+void EA::Run_LR_1()
+{
     for (int p=0; p<pP->pop_size; p++)
     {
         assert(individual.at(0).path.at(p).town.size() == pP->num_cities);
     }
-    
-    //Display_Path_Info();
+}
+
+
+//-----------------------------------------------------------
+//Checks if an agent has been created
+void EA::Run_LR_2()
+{
+    assert(individual.size() == 1);
+}
+
+
+//-----------------------------------------------------------
+//Checks if policices have been created
+void EA::Run_LR_3()
+{
+    assert(individual.at(0).path.size() == pP->pop_size);
+}
+
+
+//-----------------------------------------------------------
+//Checks if policices have been created
+void EA::Run_MR_1()
+{
+    assert(individual.at(0).path.size() == pP->pop_size);
 }
 
 
@@ -225,18 +272,37 @@ void EA::Get_Total_Dist_Traveled()
 
 
 //-----------------------------------------------------------
+//Checks that the fitness if equal to the distance traveled
+void EA::Run_MR_2()
+{
+    for (int p=0; p<pP->pop_size; p++)
+    {
+        assert(individual.at(0).path.at(p).fitness == individual.at(0).path.at(p).total_dist_traveled);
+    }
+}
+
+
+//-----------------------------------------------------------
+//Checks the program can set the fitness
+void EA::Run_MR_3(int p)
+{
+    assert(individual.at(0).path.at(p).fitness == 0);
+}
+
+
+//-----------------------------------------------------------
 //Calculates the fitness for each path
-//satisfies MR_2
 //satisfies MR_3
 void EA::Get_Fitness()
 {
     for (int p=0; p<pP->pop_size; p++)
     {
         individual.at(0).path.at(p).fitness = 0;
+        Run_MR_3(p);
         individual.at(0).path.at(p).fitness = individual.at(0).path.at(p).total_dist_traveled;
-        assert(individual.at(0).path.at(p).fitness == individual.at(0).path.at(p).total_dist_traveled);
         //cout << "path" << "\t" << pop << "\t" << "fitness" << "\t" << tour.at(pop).fitness << endl;
     }
+    Run_MR_2();
     //cout << endl;
 }
 
@@ -284,6 +350,24 @@ void EA::Evaluate()
 
 
 //-----------------------------------------------------------
+//Checks if program can run binary selection
+void EA::Run_MR_4(int index_1, int index_2, int loser)
+{
+    assert(index_1 != index_2);
+    int winner;
+    if(individual.at(0).path.at(index_1).fitness < individual.at(0).path.at(index_2).fitness)
+    {
+        winner = index_1;
+    }
+    else
+    {
+        winner = index_2;
+    }
+    assert(individual.at(0).path.at(winner).fitness <= individual.at(0).path.at(loser).fitness);
+}
+
+
+//-----------------------------------------------------------
 //Randomly selects two individuals and decides which one will die based on their fitness
 //satisfies MR_4
 int EA::Binary_Select()
@@ -303,6 +387,7 @@ int EA::Binary_Select()
     {
         loser = index_1;
     }
+    Run_MR_4(index_1, index_2, loser);
     return loser;
 }
 
@@ -321,10 +406,27 @@ void EA::Down_Select()
 
 
 //-----------------------------------------------------------
+//Checks if the policy was mutated
+void EA::Run_LR_4(Policy &M, Policy &MM)
+{
+    int check = 0;
+    for (int c=0; c<M.town.size(); c++)
+    {
+        if (M.town.at(c).location != MM.town.at(c).location)
+        {
+            check = 1;
+        }
+    }
+    assert(check == 1);
+}
+
+
+//-----------------------------------------------------------
 //Mutates the copies of the winning individuals
-//satisfies LR_4
 void EA::Mutation(Policy &M)
 {
+    Policy MM;
+    MM = M;
     for (int s=0; s<pP->num_swaps; s++)
     {
         //randomly selects two cities that are not the first of last city
@@ -342,12 +444,20 @@ void EA::Mutation(Policy &M)
         //swaps the info for the two randomly selected cities
         swap(M.town.at(index_c1), M.town.at(index_c2));
     }
+    Run_LR_4(M, MM);
 }
 
 
 //-----------------------------------------------------------
-//Runs the down select process
-//satisfies MR_5
+//Checks if the population is repopulated
+void EA::Run_MR_5()
+{
+    assert(individual.at(0).path.size() == pP->pop_size);
+}
+
+
+//-----------------------------------------------------------
+//Runs the replicate process
 void EA::Replicate()
 {
     int to_replicate = pP->to_kill;
@@ -360,6 +470,7 @@ void EA::Replicate()
         Mutation(M);
         individual.at(0).path.push_back(M);
     }
+    Run_MR_5();
 }
 
 
@@ -468,6 +579,14 @@ void EA::Run_Text_File_Functions()
 
 
 //-----------------------------------------------------------
+//Checks if agent develops good policies
+void EA::Run_HR_1()
+{
+    assert(last_fitness < first_fitness);
+}
+
+
+//-----------------------------------------------------------
 //Runs the entire TSP program
 void EA::Run_TSP()
 {
@@ -491,10 +610,19 @@ void EA::Run_TSP()
             }
             Evaluate();
             sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
+            if (gen == 0)
+            {
+                first_fitness = individual.at(0).path.at(0).fitness;
+            }
+            if (gen == pP->max_gen-1)
+            {
+                last_fitness = individual.at(0).path.at(0).fitness;
+            }
             Run_Scoreboard();
             Down_Select();
             Replicate();
         }
+        Run_HR_1();
         Run_Text_File_Functions();
     }
 }
@@ -525,6 +653,39 @@ void EA::Create_Set_City_Locations()
 
 
 //-----------------------------------------------------------
+//Chekcs if program can caluculate the distance between two cities
+void EA::Run_LR_7()
+{
+    for (int c=0; c<8; c++)
+    {
+        double dist = 0;
+        double x = 0;
+        double y = 0;
+        x = individual.at(0).path.at(0).town.at(c).x_location - individual.at(0).path.at(0).town.at(c+1).x_location;
+        y = individual.at(0).path.at(0).town.at(c).y_location - individual.at(0).path.at(0).town.at(c+1).y_location;
+        dist = sqrt((x*x)+(y*y));
+        assert(dist >= sqrt(2)-0.1 && dist <= sqrt(2)+0.1);
+    }
+}
+
+
+//-----------------------------------------------------------
+//Chekcs if program can caluculate the distance the total distance the for a policy
+void EA::Run_LR_8()
+{
+    double sum = 0;
+    for (int c=0; c<individual.at(0).path.at(0).town.size()-1; c++)
+    {
+        //cout << "in " << endl;
+        sum += individual.at(0).path.at(0).town.at(c).distance_to_cities.at(individual.at(0).path.at(0).town.at(c+1).location);
+        //cout << "out " << endl;
+        //cout << sum << endl;
+    }
+    assert(sum >= (9*sqrt(2))-0.1 && sum <= (9*sqrt(2))+0.1);
+}
+
+
+//-----------------------------------------------------------
 //Initializes the Preset Population population
 void EA::Initialize_Set_Population()
 {
@@ -543,6 +704,8 @@ void EA::Initialize_Set_Population()
     
     Create_Set_City_Locations();
     Get_Distances_To_Cities();
+    Run_LR_7();
+    Run_LR_8();
     //Display_Path_Info();
     
     //randomly shuffles the order in the path for each path in the population
