@@ -55,8 +55,8 @@ public:
     void Run_HR_2();
     void Run_MR_3(int p);
     void Run_MR_4(int index_1, int index_2, int loser);
-    void Run_MR_5();
     void Run_HR_1();
+    void Run_MR_5();
     
     
     //Statistics
@@ -66,8 +66,10 @@ public:
     vector<double> ave_fitness;
     vector<double> min_fitness;
     void Run_Scoreboard();
-    void Run_Text_File_Functions();
-    void Delete_Text_Files();
+    void Run_Text_File_Functions_For_Random_Cities();
+    void Run_Text_File_Functions_For_10_Cities();
+    void Delete_Text_Files_1();
+    void Delete_Text_Files_2();
 };
 
 
@@ -429,20 +431,23 @@ void EA::Mutation(Policy &M)
     MM = M;
     for (int s=0; s<pP->num_swaps; s++)
     {
-        //randomly selects two cities that are not the first of last city
-        int index_c1 = (int)rand() % individual.at(0).path.at(0).town.size();
-        while (index_c1 == 0)
+        double r = rand()/RAND_MAX;
+        if (r<=0.5)
         {
-            index_c1 = (int)rand() % individual.at(0).path.at(0).town.size();
+            //randomly selects two cities that are not the first of last city
+            int index_c1 = (int)rand() % individual.at(0).path.at(0).town.size();
+            while (index_c1 == 0)
+            {
+                index_c1 = (int)rand() % individual.at(0).path.at(0).town.size();
+            }
+            int index_c2 = (int)rand() % individual.at(0).path.at(0).town.size();
+            while (index_c1 == index_c2 || index_c2 == 0)
+            {
+                index_c2 = (int)rand() % individual.at(0).path.at(0).town.size();
+            }
+            //swaps the info for the two randomly selected cities
+            swap(M.town.at(index_c1), M.town.at(index_c2));
         }
-        int index_c2 = (int)rand() % individual.at(0).path.at(0).town.size();
-        while (index_c1 == index_c2 || index_c2 == 0)
-        {
-            index_c2 = (int)rand() % individual.at(0).path.at(0).town.size();
-        }
-        
-        //swaps the info for the two randomly selected cities
-        swap(M.town.at(index_c1), M.town.at(index_c2));
     }
     Run_LR_4(M, MM);
 }
@@ -519,7 +524,7 @@ void EA::Run_Scoreboard()
 
 //-------------------------------------------------------------------------
 //Deletes text files
-void EA::Delete_Text_Files()
+void EA::Delete_Text_Files_1()
 {
     
     if( remove( "Min_Fitness.txt" ) != 0 )
@@ -545,7 +550,7 @@ void EA::Delete_Text_Files()
 
 //-----------------------------------------------------------
 //writes the max, ave, and min fitness for each generation to a txt file
-void EA::Run_Text_File_Functions()
+void EA::Run_Text_File_Functions_For_Random_Cities()
 {
     ofstream File1;
     File1.open("Min_Fitness.txt", ios_base::app);
@@ -590,12 +595,12 @@ void EA::Run_HR_1()
 //Runs the entire TSP program
 void EA::Run_TSP()
 {
-    Delete_Text_Files();
+    Delete_Text_Files_1();
     Initialize_Population();
     for (int sr=0; sr<pP->num_sr; sr++)
     {
         cout << "------------------------------------" << endl;
-        cout << "SR" << "\t" << sr << endl;
+        cout << pP->num_cities << "\t" << "Cities" << endl;
         cout << endl;
         if (sr>0)
         {
@@ -608,22 +613,28 @@ void EA::Run_TSP()
                 cout << "SR" << "\t" << sr << "::" << gen << endl;
                 cout << endl;
             }
-            Evaluate();
-            sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
-            if (gen == 0)
+            if (gen<pP->max_gen-1)
             {
-                first_fitness = individual.at(0).path.at(0).fitness;
+                Evaluate();
+                sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
+                if (gen == 0)
+                {
+                    first_fitness = individual.at(0).path.at(0).fitness;
+                }
+                Run_Scoreboard();
+                Down_Select();
+                Replicate();
             }
-            if (gen == pP->max_gen-1)
+            if(gen==pP->max_gen-1)
             {
+                Evaluate();
+                sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
                 last_fitness = individual.at(0).path.at(0).fitness;
+                Run_Scoreboard();
             }
-            Run_Scoreboard();
-            Down_Select();
-            Replicate();
         }
         Run_HR_1();
-        Run_Text_File_Functions();
+        Run_Text_File_Functions_For_Random_Cities();
     }
 }
 
@@ -725,47 +736,119 @@ void EA::Initialize_Set_Population()
 
 
 //-----------------------------------------------------------
+//writes the max, ave, and min fitness for each generation to a txt file
+void EA::Run_Text_File_Functions_For_10_Cities()
+{
+    ofstream File4;
+    File4.open("Min_Fitness_10_Cities.txt", ios_base::app);
+    ofstream File5;
+    File5.open("Ave_Fitness_10_Cities.txt", ios_base::app);
+    ofstream File6;
+    File6.open("Max_Fitness_10_Cities.txt", ios_base::app);
+    
+    for (int i=0; i<pP->max_gen; i++)
+    {
+        File4 << min_fitness.at(i) << "\t";
+    }
+    File4 << endl;
+    
+    
+    for (int i=0; i<pP->max_gen; i++)
+    {
+        File5 << ave_fitness.at(i) << "\t";
+    }
+    File5 << endl;
+    
+    for (int i=0; i<pP->max_gen; i++)
+    {
+        File6 << max_fitness.at(i) << "\t";
+    }
+    File6 << endl;
+    File4.close();
+    File5.close();
+    File6.close();
+}
+
+//-------------------------------------------------------------------------
+//Deletes text files
+void EA::Delete_Text_Files_2()
+{
+    if( remove( "Min_Fitness_10_Cities.txt" ) != 0 )
+        perror( "ERROR DELETING FILE Min_Fitness_10_Cities" );
+    else
+        puts( "Min_Fitness_10_Cities FILE SUCCEDDFULLY DELETED" );
+    cout << endl;
+    
+    
+    if( remove( "Ave_Fitness_10_Cities.txt" ) != 0 )
+        perror( "ERROR DELETING FILE Ave_Fitness_10_Cities" );
+    else
+        puts( "Ave_Fitness_10_Cities FILE SUCCEDDFULLY DELETED" );
+    cout << endl;
+    
+    if( remove( "Max_Fitness_10_Cities.txt" ) != 0 )
+        perror( "ERROR DELETING FILE Max_Fitness_10_Cities" );
+    else
+        puts( "Max_Fitness_10_Cities FILE SUCCEDDFULLY DELETED" );
+    cout << endl;
+}
+
+
+//-----------------------------------------------------------
 //Runs the entire HR_2 test
 void EA::Run_HR_2()
 {
+    Delete_Text_Files_2();
     Initialize_Set_Population();
-    for (int gen=0; gen<pP->max_gen; gen++)
+    for (int sr=0; sr<pP->num_sr; sr++)
     {
-        if (gen % 100 == 0)
-        {
-            //cout < "Generation << "\t" << gen << endl;
-            //cout << endl;
-        }
-        if (gen<pP->max_gen-1)
-        {
-            Evaluate();
-            sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
-            Run_Scoreboard();
-            Down_Select();
-            Replicate();
-        }
-        if(gen==pP->max_gen-1)
-        {
-            Evaluate();
-            sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
-        }
-    }
-    /*
-    for (int p=0; p<pP->pop_size; p++)
-    {
-        cout << "PATH" << "\t" << p << endl;
-        for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
-        {
-            cout << individual.at(0).path.at(p).town.at(c).location << "\t";
-        }
+        cout << "------------------------------------" << endl;
+        cout << 10 << "\t" << "Cities" << endl;
         cout << endl;
+        if (sr>0)
+        {
+            Re_Initialize_Population();
+        }
+        for (int gen=0; gen<pP->max_gen; gen++)
+        {
+            if (gen % 100 == 0)
+            {
+                cout << "SR" << "\t" << sr << "::" << gen << endl;
+                cout << endl;
+            }
+            if (gen<pP->max_gen-1)
+            {
+                Evaluate();
+                sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
+                Run_Scoreboard();
+                Down_Select();
+                Replicate();
+            }
+            if(gen==pP->max_gen-1)
+            {
+                Evaluate();
+                sort(individual.at(0).path.begin(), individual.at(0).path.end(), Less_Than_Path_Fitness());
+                Run_Scoreboard();
+            }
+        }
+        /*
+         for (int p=0; p<pP->pop_size; p++)
+         {
+         cout << "PATH" << "\t" << p << endl;
+         for (int c=0; c<individual.at(0).path.at(p).town.size(); c++)
+         {
+         cout << individual.at(0).path.at(p).town.at(c).location << "\t";
+         }
+         cout << endl;
+         }
+         cout << endl;
+         */
+        assert(individual.at(0).path.at(0).fitness >= 9*sqrt(2)-0.1 || individual.at(0).path.at(0).fitness <= 9*sqrt(2)+0.1);
+        Run_Text_File_Functions_For_10_Cities();
     }
-    cout << endl;
-    */
-    assert(individual.at(0).path.at(0).fitness >= 9*sqrt(2)-0.1 || individual.at(0).path.at(0).fitness <= 9*sqrt(2)+0.1);
-    cout << "PASSED HR_2" << endl;
-    cout << endl;
     Re_Initialize_Population();
+    //cout << "PASSED HR_2" << endl;
+    //cout << endl;
     individual.clear();
 }
 

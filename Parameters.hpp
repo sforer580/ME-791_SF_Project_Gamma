@@ -28,9 +28,9 @@ public:
     int pop_size = 200;
     int num_cities = 25;
     int to_kill = pop_size/2;
-    int num_swaps = 1;
-    int max_gen = 4000;
-    int num_sr = 1;
+    int num_swaps = 3;
+    int max_gen = 600;
+    int num_sr = 30;
 };
 
 #endif /* Parameters_hpp */
