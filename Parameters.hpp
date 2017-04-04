@@ -23,8 +23,8 @@ protected:
     
 public:
     //Parameters
-    int x_dim_max = 50;
-    int y_dim_max = 50;
+    int x_dim_max = 100;
+    int y_dim_max = 100;
     int pop_size = 200;
     int num_cities = 25;
     int to_kill = pop_size/2;
